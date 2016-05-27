@@ -20,7 +20,7 @@ goog.require('ga_urlutils_service');
   ]);
 
   module.provider('gaTileGrid', function() {
-    var origin = [420000, 350000];
+    var origin = [2420000, 1350000];
 
     function getDefaultResolutions() {
       return [4000, 3750, 3500, 3250, 3000, 2750, 2500, 2250,
@@ -357,10 +357,9 @@ goog.require('ga_urlutils_service');
         return domainsArray;
       };
 
-      var Layers = function(dfltWmsSubdomains, dfltWmtsNativeSubdomains,
-          dfltWmtsMapProxySubdomains, dfltVectorTilesSubdomains,
-          wmsUrlTemplate, wmtsGetTileUrlTemplate,
-          wmtsMapProxyGetTileUrlTemplate, terrainTileUrlTemplate,
+      var Layers = function(dfltWmsSubdomains, dfltWmtsSubdomains,
+          dfltVectorTilesSubdomains, wmsUrlTemplate,
+          wmtsGetTileUrlTemplate, terrainTileUrlTemplate,
           vectorTilesUrlTemplate, layersConfigUrlTemplate,
           legendUrlTemplate, imageryMetadataUrl) {
         var layers;
@@ -393,13 +392,12 @@ goog.require('ga_urlutils_service');
           return urls;
         };
 
-        var getWmtsGetTileTpl = function(layer, time, tileMatrixSet,
-            format, useNativeTpl) {
-          var tpl;
-          if (useNativeTpl) {
-            tpl = wmtsGetTileUrlTemplate;
-          } else {
-            tpl = wmtsMapProxyGetTileUrlTemplate;
+        var getWmtsGetTileTpl = function(layer, time, tileMatrixSet, format) {
+          var tpl = wmtsGetTileUrlTemplate;
+          if (tileMatrixSet === '2056') {
+            tpl = tpl.replace('{z}', '{TileMatrix}').
+                replace('{x}', '{TileCol}').
+                replace('{y}', '{TileRow}');
           }
           var url = tpl.replace('{Layer}', layer).replace('{Format}', format);
           if (time) {
@@ -662,13 +660,10 @@ goog.require('ga_urlutils_service');
             return providers;
           }
           if (config3d.type === 'wmts') {
-            var hasNativeTiles = !!config.config3d;
             params = {
-              url: getWmtsGetTileTpl(requestedLayer, timestamp,
-                  '4326', format, hasNativeTiles),
+              url: getWmtsGetTileTpl(requestedLayer, timestamp, '4326', format),
               tileSize: 256,
-              subdomains: hasNativeTiles ? h2(dfltWmtsNativeSubdomains) :
-                h2(dfltWmtsMapProxySubdomains)
+              subdomains: h2(dfltWmtsSubdomains)
             };
           } else if (config3d.type === 'wms') {
             var tileSize = 512;
@@ -769,10 +764,7 @@ goog.require('ga_urlutils_service');
           if (layer.type === 'wmts') {
             if (!olSource) {
               var wmtsTplUrl = getWmtsGetTileTpl(layer.serverLayerName, null,
-                  '21781', layer.format, true).
-                  replace('{z}', '{TileMatrix}').
-                  replace('{x}', '{TileCol}').
-                  replace('{y}', '{TileRow}');
+                  '2056', layer.format);
               olSource = layer.olSource = new ol.source.WMTS({
                 dimensions: {
                   'Time': timestamp
@@ -788,7 +780,7 @@ goog.require('ga_urlutils_service');
                 tileGrid: gaTileGrid.get(layer.resolutions,
                     layer.minResolution),
                 tileLoadFunction: tileLoadFunction,
-                urls: getImageryUrls(wmtsTplUrl, h2(dfltWmtsNativeSubdomains)),
+                urls: getImageryUrls(wmtsTplUrl, h2(dfltWmtsSubdomains)),
                 crossOrigin: crossOrigin
               });
             }
@@ -1046,10 +1038,9 @@ goog.require('ga_urlutils_service');
         };
       };
 
-      return new Layers(this.dfltWmsSubdomains, this.dfltWmtsNativeSubdomains,
-          this.dfltWmtsMapProxySubdomains, this.dfltVectorTilesSubdomains,
-          this.wmsUrlTemplate, this.wmtsGetTileUrlTemplate,
-          this.wmtsMapProxyGetTileUrlTemplate, this.terrainTileUrlTemplate,
+      return new Layers(this.dfltWmsSubdomains, this.dfltWmtsSubdomains,
+          this.dfltVectorTilesSubdomains, this.wmsUrlTemplate,
+          this.wmtsGetTileUrlTemplate, this.terrainTileUrlTemplate,
           this.vectorTilesUrlTemplate, this.layersConfigUrlTemplate,
           this.legendUrlTemplate, this.imageryMetadataUrl);
     };

@@ -148,7 +148,7 @@ describe('ga_map_service', function() {
 
   describe('gaTileGrid', function() {
     var gaTileGrid;
-    var orig = [420000, 350000];
+    var orig = [2420000, 1350000];
     var dfltRes = [4000, 3750, 3500, 3250, 3000, 2750, 2500, 2250,
       2000, 1750, 1500, 1250, 1000, 750, 650, 500, 250, 100, 50, 20, 10, 5,
       2.5, 2, 1.5, 1, 0.5];
@@ -516,15 +516,11 @@ describe('ga_map_service', function() {
       'ch.vbs.patrouilledesglaciers-z_rennen': {}
     };
     var terrainTpl = '//3d.geo.admin.ch/1.0.0/{layer}/default/{time}/4326';
-    var wmtsTpl = '//wmts{s}.geo.admin.ch/1.0.0/{layer}/default/{time}/4326/{z}/{y}/{x}.{format}';
-    var wmtsMpTpl = window.location.protocol + '//wmts{s}.geo.admin.ch/1.0.0/{layer}/default/{time}/4326/{z}/{x}/{y}.{format}';
+    var wmtsTpl = '//wmts{s}.geo.admin.ch/1.0.0/{layer}/default/{time}/4326/{z}/{x}/{y}.{format}';
     var vectorTilesTpl = '//vectortiles100.geo.admin.ch/{layer}/{time}/';
     var wmsTpl = '//wms{s}.geo.admin.ch/?layers={layer}&format=image%2F{format}&service=WMS&version=1.3.0&request=GetMap&crs=CRS:84&bbox={westProjected},{southProjected},{eastProjected},{northProjected}&width=512&height=512&styles=';
     var expectWmtsUrl = function(l, t, f) {
       return expectUrl(wmtsTpl, l, t, f);
-    };
-    var expectWmtsMpUrl = function(l, t, f) {
-      return expectUrl(wmtsMpTpl, l, t, f);
     };
     var expectTerrainUrl = function(l, t, f) {
       return expectUrl(terrainTpl, l, t, f);
@@ -919,20 +915,6 @@ describe('ga_map_service', function() {
         spy.restore();
       });
 
-      it('returns a CesiumImageryProvider from a wmts using mapproxy tiles', function() {
-        var spy = sinon.spy(Cesium, 'UrlTemplateImageryProvider');
-        var prov = gaLayers.getCesiumImageryProviderById('wmtsmapproxy');
-        expect(prov).to.be.an(Cesium.UrlTemplateImageryProvider);
-        // Properties of Cesium object are set in a promise and I don 't
-        // succeed to test it so we test the params we send to the constructor
-        // instead.
-        var params = spy.args[0][0];
-        expect(params.url).to.eql(expectWmtsMpUrl('wmtsmapproxy', '20160201'));
-        expect(params.subdomains).to.eql(['20', '21', '22', '23', '24']);
-        expect(prov.bodId).to.be('wmtsmapproxy');
-        spy.restore();
-      });
-
       it('returns a CesiumImageryProvider from a wms config', function() {
         var spy = sinon.spy(Cesium, 'UrlTemplateImageryProvider');
         var prov = gaLayers.getCesiumImageryProviderById('wms');
@@ -1101,7 +1083,7 @@ describe('ga_map_service', function() {
           expect(source.getProjection().getCode()).to.be('EPSG:21781');
           expect(source.getRequestEncoding()).to.be('REST');
           expect(source.getUrls().length).to.be(5);
-          expect(source.getUrls()[0]).to.be('//wmts5.geo.admin.ch/1.0.0/serverLayerName/default/{Time}/21781/{TileMatrix}/{TileRow}/{TileCol}.jpeg');
+          expect(source.getUrls()[0]).to.be('//wmts5.geo.admin.ch/1.0.0/serverLayerName/default/{Time}/2056/{TileMatrix}/{TileCol}/{TileRow}.jpeg');
           expect(source.getTileLoadFunction()).to.be.a(Function);
           var tileGrid = source.getTileGrid();
           expect(tileGrid instanceof ol.tilegrid.WMTS).to.be.ok();

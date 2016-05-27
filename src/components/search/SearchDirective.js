@@ -170,8 +170,8 @@ goog.require('ga_what3words_service');
                 if (res && res.geometry && res.geometry.lng &&
                     res.geometry.lat) {
                   var newPos = ol.proj.transform([res.geometry.lng,
-                    res.geometry.lat],
-                  'EPSG:4326', 'EPSG:21781');
+                    res.geometry.lat], 'EPSG:4326',
+                  $scope.map.getView().getProjection());
                   gaMapUtils.moveTo($scope.map, $scope.ol3d, 8, newPos);
                   gaMarkerOverlay.add($scope.map, newPos, true);
                 }
