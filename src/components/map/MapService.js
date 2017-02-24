@@ -534,7 +534,7 @@ goog.require('ga_urlutils_service');
               var tilesetTs = [
                 '20161217',
                 '20161121',
-                '20160909'
+                '20170223'
               ];
 
               var params = gaPermalink.getParams();
@@ -614,6 +614,7 @@ goog.require('ga_urlutils_service');
          * Returns an Cesium 3D Tileset.
          */
         this.getCesiumTileset3DById = function(bodId) {
+          var params = gaPermalink.getParams();
           var config3d = this.getConfig3d(layers[bodId]);
           if (!/^tileset3d$/.test(config3d.type)) {
             return;
