@@ -534,7 +534,7 @@ goog.require('ga_urlutils_service');
               var tilesetTs = [
                 '20161217',
                 '20170223',
-                '20170330'
+                '20170420_v2'
               ];
 
               var params = gaPermalink.getParams();
