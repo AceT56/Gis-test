@@ -6,6 +6,7 @@ goog.require('ga_map');
 goog.require('ga_map_load_service');
 goog.require('ga_networkstatus_service');
 goog.require('ga_storage_service');
+goog.require('ga_styles_service');
 goog.require('ga_topic_service');
 goog.require('ga_window_service');
 
@@ -18,6 +19,7 @@ goog.require('ga_window_service');
     'ga_networkstatus_service',
     'ga_storage_service',
     'ga_background_service',
+    'ga_styles_service',
     'ga_topic_service',
     'ga_window_service'
   ]);
@@ -30,7 +32,7 @@ goog.require('ga_window_service');
       gaPermalinkFeaturesManager, gaPermalinkLayersManager, gaMapUtils,
       gaRealtimeLayersManager, gaNetworkStatus, gaPermalink, gaStorage,
       gaGlobalOptions, gaBackground, gaTime, gaLayers, gaTopic,
-      gaOpaqueLayersManager, gaMapLoad, gaWindow) {
+      gaOpaqueLayersManager, gaMapLoad, gaWindow, gaStyleFactory) {
 
     var createMap = function() {
       var toolbar = $('#zoomButtons')[0];
@@ -109,8 +111,9 @@ goog.require('ga_window_service');
       };
 
       var cesium = new GaCesium($scope.map, gaPermalink, gaLayers,
-          gaGlobalOptions, gaBrowserSniffer, $q,
-          $translate, $rootScope, gaBackground);
+          gaGlobalOptions, gaBrowserSniffer, $q, $translate, $rootScope,
+          gaBackground, gaStyleFactory);
+
       cesium.loaded().then(function(ol3d) {
         $scope.ol3d = ol3d;
         if (!$scope.ol3d) {

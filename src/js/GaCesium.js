@@ -12,14 +12,16 @@ goog.provide('ga_cesium');
  * @param {Object} $translate
  * @param {Object} $rootScope
  * @param {Object} gaBackground
- *
+ * @param {Object} gaStyleFactory
  * @constructor
  */
 // eslint-disable-next-line no-unused-vars
 var GaCesium = function(map, gaPermalink, gaLayers, gaGlobalOptions,
-    gaBrowserSniffer, $q, $translate, $rootScope, gaBackground) {
+    gaBrowserSniffer, $q, $translate, $rootScope, gaBackground,
+    gaStyleFactory) {
   // Url of olcesium library
   var olCesiumLibUrl = gaGlobalOptions.resourceUrl;
+  console.log(olCesiumLibUrl);
   if (gaGlobalOptions.buildMode === 'prod') {
     olCesiumLibUrl += 'lib/Cesium.min.js';
   } else {
@@ -149,18 +151,8 @@ var GaCesium = function(map, gaPermalink, gaLayers, gaGlobalOptions,
       if (tileset3dId) {
         var tileset = gaLayers.getCesiumTileset3DById(tileset3dId);
         if (/names3d\.3d/.test(tileset3dId)) {
-          tileset.style = new Cesium.Cesium3DTileStyle({
-            show: true,
-            color: 'rgb(255, 255, 255)',
-            outlineColor: 'rgb(0, 0, 0)',
-            outlineWidth: 3,
-            labelStyle: 2,
-            font: "'24px arial'",
-            scaleByDistanceNearRange: 1000.0,
-            scaleByDistanceNearValue: 2.0,
-            scaleByDistanceFarRange: 10000.0,
-            scaleByDistanceFarValue: 0.4
-          });
+          var style = gaStyleFactory.getStyle('labelEnhanced');
+          tileset.style = new Cesium.Cesium3DTileStyle(style);
         }
         if (tileset) {
           primitives.push(tileset);

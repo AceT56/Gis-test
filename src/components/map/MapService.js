@@ -529,7 +529,7 @@ goog.require('ga_urlutils_service');
               var tileset3d = [
                 'ch.swisstopo.swisstlm3d.3d',
                 'ch.swisstopo.swissnames3d.3d',
-                'ch.swisstopo.trees.3d',
+                'ch.swisstopo.trees.3d'
               ];
               var tilesetTs = [
                 '20161217',
@@ -614,7 +614,6 @@ goog.require('ga_urlutils_service');
          * Returns an Cesium 3D Tileset.
          */
         this.getCesiumTileset3DById = function(bodId) {
-          var params = gaPermalink.getParams();
           var config3d = this.getConfig3d(layers[bodId]);
           if (!/^tileset3d$/.test(config3d.type)) {
             return;
