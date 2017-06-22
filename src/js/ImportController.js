@@ -1,6 +1,7 @@
 goog.provide('ga_import_controller');
 
 goog.require('ga_browsersniffer_service');
+goog.require('ga_gpx_service');
 goog.require('ga_kml_service');
 goog.require('ga_map_service');
 goog.require('ga_previewlayers_service');
@@ -13,6 +14,7 @@ goog.require('ngeo.fileService');
 
   var module = angular.module('ga_import_controller', [
     'ga_kml_service',
+    'ga_gpx_service',
     'ngeo.fileService',
     'ga_browsersniffer_service',
     'ga_map_service',
@@ -23,7 +25,7 @@ goog.require('ngeo.fileService');
 
   module.controller('GaImportController', function($scope, $q, $document,
       $window, $timeout, ngeoFile, gaKml, gaBrowserSniffer, gaWms, gaUrlUtils,
-      gaLang, gaPreviewLayers, gaMapUtils, gaWmts) {
+      gaLang, gaPreviewLayers, gaMapUtils, gaWmts, gaGpx) {
 
     $scope.supportDnd = !gaBrowserSniffer.msie || gaBrowserSniffer.msie > 9;
     $scope.options = {
@@ -226,6 +228,29 @@ goog.require('ngeo.fileService');
         $scope.wmsGetCap = data;
         defer.resolve({
           message: 'upload_succeeded'
+        });
+
+      } else if (ngeoFile.isGpx(data)) {
+
+        gaGpx.addToMap($scope.map, data, {
+          url: file.url || URL.createObjectURL(file),
+          useImageVector: gaKml.useImageVector(file.size),
+          zoomToExtent: true
+
+        }).then(function() {
+          defer.resolve({
+            message: 'parse_succeeded'
+          });
+
+        }, function(reason) {
+          $window.console.error('GPX parsing failed: ', reason);
+          defer.reject({
+            message: 'parse_failed',
+            reason: reason
+          });
+
+        }, function(evt) {
+          defer.notify(evt);
         });
 
       } else if (ngeoFile.isKml(data)) {
