@@ -199,8 +199,7 @@ goog.require('ga_time_service');
             return scope.ol3d && scope.ol3d.getEnabled();
           }, function(active) {
             scope.stop();
-            scope.is3dActive = active;
-            elt.toggle(scope.isActive && !scope.is3dActive);
+            elt.toggle(scope.isActive);
           });
 
           // Activate/deactivate the component
@@ -210,7 +209,7 @@ goog.require('ga_time_service');
             if (active !== old) {
               scope.years = active ? scope.options.years : [];
               applyNewYear((active ? scope.currentYear : undefined));
-              elt.toggle(active && !scope.is3dActive);
+              elt.toggle(active);
             }
           });
 

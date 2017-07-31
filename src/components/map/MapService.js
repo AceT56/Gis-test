@@ -438,8 +438,8 @@ goog.require('ga_urlutils_service');
           return urls;
         };
 
-        var getWmtsGetTileTpl = function(layer, time, tileMatrixSet,
-            format, useNativeTpl) {
+        var getWmtsGetTileTpl = function(layer, tileMatrixSet, format,
+            useNativeTpl) {
           var tpl;
           if (useNativeTpl) {
               tpl = wmtsGetTileUrlTemplate;
@@ -447,9 +447,6 @@ goog.require('ga_urlutils_service');
               tpl = wmtsMapProxyGetTileUrlTemplate;
           }
           var url = tpl.replace('{Layer}', layer).replace('{Format}', format);
-          if (time) {
-            url = url.replace('{Time}', time);
-          }
           if (tileMatrixSet) {
             url = url.replace('{TileMatrixSet}', tileMatrixSet);
           }
@@ -678,15 +675,16 @@ goog.require('ga_urlutils_service');
         /**
          * Returns an Cesium imagery provider.
          */
-        this.getCesiumImageryProviderById = function(bodId) {
+        this.getCesiumImageryProviderById = function(bodId, olLayer) {
           var config = layers[bodId];
           var config3d = this.getConfig3d(config);
           if (!/^(wms|wmts|aggregate)$/.test(config3d.type)) {
             return;
           }
+          var timestamp = this.getLayerTimestampFromYear(config3d,
+              gaTime.get());
           var params;
           bodId = config.config3d || bodId;
-          var timestamp = this.getLayerTimestampFromYear(bodId, gaTime.get());
           var requestedLayer = config3d.wmsLayers || config3d.serverLayerName ||
               bodId;
           var format = config3d.format || 'png';
@@ -697,7 +695,8 @@ goog.require('ga_urlutils_service');
           if (config3d.type == 'aggregate') {
             var providers = [];
             config3d.subLayersIds.forEach(function(item) {
-              var subProvider = this.getCesiumImageryProviderById(item);
+              var subProvider = this.getCesiumImageryProviderById(item,
+                  olLayer);
               if (Array.isArray(subProvider)) {
                 providers.push.apply(providers, subProvider);
               } else {
@@ -709,8 +708,8 @@ goog.require('ga_urlutils_service');
           if (config3d.type == 'wmts') {
             var hasNativeTiles = !!config.config3d;
             params = {
-              url: getWmtsGetTileTpl(requestedLayer, timestamp,
-                  '4326', format, hasNativeTiles),
+              url: getWmtsGetTileTpl(requestedLayer, '4326', format,
+                  hasNativeTiles),
               tileSize: 256,
               subdomains: hasNativeTiles ? h2(dfltWmtsNativeSubdomains) :
                   h2(dfltWmtsMapProxySubdomains)
@@ -728,11 +727,9 @@ goog.require('ga_urlutils_service');
                     '{eastProjected},{northProjected}',
               width: tileSize,
               height: tileSize,
-              styles: ''
+              styles: '',
+              time: '{Time}'
             };
-            if (timestamp) {
-              wmsParams.time = timestamp;
-            }
             params = {
               url: getWmsTpl(gaGlobalOptions.wmsUrl, wmsParams),
               tileSize: tileSize,
@@ -765,7 +762,12 @@ goog.require('ga_urlutils_service');
               availableLevels: window.imageryAvailableLevels,
               // Experimental: restrict all rasters from 0 - 17 to terrain
               // availability and 18 to Swiss bbox
-              metadataUrl: imageryMetadataUrl
+              metadataUrl: imageryMetadataUrl,
+              customTags: {
+                '{Time}': function() {
+                  return olLayer.time || '';
+                }
+              }
             });
             provider.bodId = bodId;
             return provider;
@@ -813,8 +815,8 @@ goog.require('ga_urlutils_service');
           var olSource = (layer.timeEnabled) ? null : layer.olSource;
           if (layer.type == 'wmts') {
             if (!olSource) {
-              var wmtsTplUrl = getWmtsGetTileTpl(layer.serverLayerName, null,
-                  '21781', layer.format, true)
+              var wmtsTplUrl = getWmtsGetTileTpl(layer.serverLayerName, '21781',
+                  layer.format, true)
                   .replace('{z}', '{TileMatrix}')
                   .replace('{x}', '{TileCol}')
                   .replace('{y}', '{TileRow}');
@@ -962,7 +964,7 @@ goog.require('ga_urlutils_service');
             olLayer.updateDelay = layer.updateDelay;
             var that = this;
             olLayer.getCesiumImageryProvider = function() {
-              return that.getCesiumImageryProviderById(bodId);
+              return that.getCesiumImageryProviderById(bodId, olLayer);
             };
             olLayer.getCesiumDataSource = function(scene) {
               return that.getCesiumDataSourceById(bodId, scene);
