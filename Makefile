@@ -327,13 +327,10 @@ olcesium: .build-artefacts/ol-cesium
 	cd .build-artefacts/ol-cesium; \
 	git reset HEAD --hard; \
 	git fetch --all; \
-	git checkout $(OL_CESIUM_VERSION); \
 	git show; \
-	git submodule update --recursive --init --force; \
 	cd ol; \
 	git reset HEAD --hard; \
 	git fetch --all; \
-	git checkout $(OL_VERSION); \
 	git show; \
 	cat ../../../scripts/ga-ol-reproj.exports >> src/ol/reproj/reproj.js; \
 	cat ../../../scripts/ga-ol-style.exports >> src/ol/style/style.js; \
@@ -343,9 +340,6 @@ olcesium: .build-artefacts/ol-cesium
 	npm install --only prod; \
 	node tasks/build-ext.js; \
 	cd ../cesium; \
-	git remote | grep c2c || git remote add c2c git://github.com/camptocamp/cesium; \
-	git fetch --all; \
-	git checkout $(CESIUM_VERSION); \
 	git show; \
 	cd ..; \
 	ln -T -f -s ../../../../ol-cesium-plugin/ src/plugins/geoadmin; \

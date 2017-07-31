@@ -17176,6 +17176,91 @@ olcs.OLCesium.prototype.throwOnUnitializedMap_ = function() {
     throw new Error("The OpenLayers map is not properly initialized: " + center + " / " + view.getResolution());
   }
 };
+goog.provide("olcs.core.GaImageryProvider");
+goog.require("ol.events");
+goog.require("ol.proj");
+olcs.core.GaImageryProvider = function(source, opt_fallbackProj) {
+  this.source_ = source;
+  this.projection_ = null;
+  this.fallbackProj_ = opt_fallbackProj || null;
+  this.ready_ = false;
+  var proxy = this.source_.get("olcs.proxy");
+  if (proxy) {
+    if (typeof proxy === "function") {
+      this.proxy_ = {"getURL":proxy};
+    } else {
+      if (typeof proxy === "string") {
+        this.proxy_ = new Cesium.DefaultProxy(proxy);
+      }
+    }
+  }
+  this.errorEvent_ = new Cesium.Event;
+  this.emptyCanvas_ = document.createElement("canvas");
+  this.emptyCanvas_.width = 1;
+  this.emptyCanvas_.height = 1;
+  this.source_.on(ol.events.EventType.CHANGE, function(e) {
+    this.handleSourceChanged_();
+  }, this);
+  this.handleSourceChanged_();
+};
+Object.defineProperties(olcs.core.GaImageryProvider.prototype, {"ready":{"get":function() {
+  return this.ready_;
+}}, "rectangle":{"get":function() {
+  return this.rectangle_;
+}}, "tileWidth":{"get":function() {
+  var tg = this.source_.getTileGrid();
+  return tg ? tg.getTileSize(0) : 256;
+}}, "tileHeight":{"get":function() {
+  return this.tileWidth;
+}}, "maximumLevel":{"get":function() {
+  var tg = this.source_.getTileGrid();
+  return tg ? tg.getMaxZoom() : 18;
+}}, "minimumLevel":{"get":function() {
+  return 0;
+}}, "tilingScheme":{"get":function() {
+  return this.tilingScheme_;
+}}, "tileDiscardPolicy":{"get":function() {
+  return undefined;
+}}, "errorEvent":{"get":function() {
+  return this.errorEvent_;
+}}, "proxy":{"get":function() {
+  return this.proxy_;
+}}, "hasAlphaChannel":{"get":function() {
+  return true;
+}}, "pickFeatures":{"get":function() {
+  return undefined;
+}}});
+olcs.core.GaImageryProvider.prototype.handleSourceChanged_ = function() {
+  if (!this.ready_ && this.source_.getState() == "ready") {
+    var proj = this.source_.getProjection();
+    this.projection_ = proj ? proj : this.fallbackProj_;
+    if (this.projection_ == ol.proj.get("EPSG:4326")) {
+      this.tilingScheme_ = new Cesium.GeographicTilingScheme;
+    } else {
+      if (this.projection_ == ol.proj.get("EPSG:3857")) {
+        this.tilingScheme_ = new Cesium.WebMercatorTilingScheme;
+      } else {
+        return;
+      }
+    }
+    this.rectangle_ = this.tilingScheme_.rectangle;
+    this.ready_ = true;
+  }
+};
+olcs.core.GaImageryProvider.prototype.requestImage = function(x, y, level) {
+  var tileUrlFunction = this.source_.getTileUrlFunction();
+  if (tileUrlFunction && this.projection_) {
+    var z_ = this.tilingScheme_ instanceof Cesium.GeographicTilingScheme ? level + 1 : level;
+    var y_ = -y - 1;
+    var url = tileUrlFunction.call(this.source_, [z_, x, y_], 1, this.projection_);
+    if (this.proxy_) {
+      url = this.proxy_.getURL(url);
+    }
+    return url ? Cesium.ImageryProvider.loadImage(this, url) : this.emptyCanvas_;
+  } else {
+    return this.emptyCanvas_;
+  }
+};
 goog.provide("olcs.GaKmlSynchronizer");
 goog.require("ol");
 goog.require("olcs.util");
