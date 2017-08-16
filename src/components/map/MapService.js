@@ -954,19 +954,19 @@ goog.require('ga_urlutils_service');
          * found.
          */
         this.getLayerTimestampFromYear = function(configOrBodId, yearStr) {
-          var layer = angular.isString(configOrBodId) ?
+          var config = angular.isString(configOrBodId) ?
             this.getLayer(configOrBodId) : configOrBodId;
-          if (!layer.timeEnabled) {
+          if (!config.timeEnabled) {
             // a WMTS/Terrain/Tileset3D layer has at least one timestamp
-            return (layer.type === 'wmts' || layer.type === 'terrain' ||
-                layer.type === 'tileset3d') ? layer.timestamps[0] : undefined;
+            return (config.type === 'wmts' || config.type === 'terrain' ||
+                config.type === 'tileset3d') ? config.timestamps[0] : undefined;
           }
-          var timestamps = layer.timestamps || [];
+          var timestamps = config.timestamps || [];
           if (angular.isNumber(yearStr)) {
             yearStr = '' + yearStr;
           }
           if (!angular.isDefined(yearStr)) {
-            var timeBehaviour = layer.timeBehaviour;
+            var timeBehaviour = config.timeBehaviour;
             // check if specific 4/6/8 digit timestamp is specified
             if (/^\d{4}$|^\d{6}$|^\d{8}$/.test(timeBehaviour)) {
               yearStr = timeBehaviour.substr(0, 4);
@@ -1296,10 +1296,13 @@ goog.require('ga_urlutils_service');
           if (!olLayerOrId) {
             return false;
           }
+          if (olLayerOrId instanceof ol.layer.Layer) {
+            olLayerOrId = olLayerOrId.id;
+          }
           if (angular.isString(olLayerOrId)) {
             return /^KML\|\|/.test(olLayerOrId);
           }
-          return olLayerOrId.type === 'KML';
+          return false;
         },
 
         // Test if a layer is a KML layer added by dnd
@@ -1338,12 +1341,15 @@ goog.require('ga_urlutils_service');
         isExternalWmtsLayer: function(olLayerOrId) {
           if (!olLayerOrId) {
             return false;
-          } else if (angular.isString(olLayerOrId)) {
+          }
+          if (olLayerOrId instanceof ol.layer.Layer) {
+            olLayerOrId = olLayerOrId.id;
+          }
+          if (angular.isString(olLayerOrId)) {
             return /^WMTS\|\|/.test(olLayerOrId) &&
                 olLayerOrId.split('||').length === 3;
-          } else {
-            return olLayerOrId.type === 'WMTS';
           }
+          return false;
         },
 
         // Test if a feature is a measure
