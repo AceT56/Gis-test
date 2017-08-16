@@ -37,12 +37,12 @@ goog.require('ga_map_service');
             if (kml) {
               gaKml.readFeatures(data, map.getView().getProjection()).
                   then(function(features) {
-                olSource.clear();
-                olSource.addFeatures(features);
-                olSource.setProperties({
-                  'kmlString': data
-                });
-              });
+                    olSource.clear();
+                    olSource.addFeatures(features);
+                    olSource.setProperties({
+                      'kmlString': data
+                    });
+                  });
             } else {
               olSource.clear();
               olSource.addFeatures(
